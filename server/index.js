@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from 'body-parser'
 import loginRoutes from "./api/routes/login.routes.js"
+import chatRoutes from "./api/routes/chat.routes.js"
 const app = express()
 
 dotenv.config({
@@ -27,6 +28,7 @@ const startServer = () => {
     app.use(bodyParser.urlencoded({ extended: true }));
     
     app.use("/api/login/", loginRoutes);
+    app.use("/api/chat/", chatRoutes);
 }
 
 

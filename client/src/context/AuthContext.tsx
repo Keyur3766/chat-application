@@ -2,7 +2,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import Userservices from "../services/index.js";
 import { useRouter } from "next/navigation";
-import { setCookie } from "cookies-next";
+import { deleteCookie, setCookie } from "cookies-next";
+import { requestHandler } from "@/utils";
 
 
 
@@ -40,7 +41,6 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("user_id", res.data._id);
 
-            
 
           setCookie("token", res.data.token);
 
@@ -66,6 +66,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   
     // Function to handle user logout
     const logout = async () => {
+      await requestHandler(
+        async () => await Userservices.logoutUser(),
+        () => {},
+        () => {
+          console.log("control reached");
+          setUser(null);
+          setToken(null);
+          deleteCookie("token");
+          localStorage.clear(); // Clear local storage on logout
+          router.push("/login"); // Redirect to the login page after successful logout
+        },
+        alert // Display error alerts on request failure
+      );
     };
   
     // Check for saved user and token in local storage during component initialization

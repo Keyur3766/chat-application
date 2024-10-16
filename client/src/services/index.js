@@ -25,5 +25,18 @@ export default {
       console.log(error);
       return error;
     }
+  },
+
+  logoutUser: async function () {
+    const response = await axios.post(`${api_base_url}/api/login/removeToken`);
+    
+    return response;
+  },
+
+
+  availableParticipants: async function() {
+    const response = await axios.get(`${api_base_url}/api/chat/availableParticipants`)
+
+    return response;
   }
 }

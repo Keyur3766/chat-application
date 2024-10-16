@@ -61,7 +61,15 @@ const loginAndGenerateToken = async(req,res) => {
     }
 };
 
-  export{
-    registerUser,
-    loginAndGenerateToken
-  }
+const logOutAndRemoveToken = async(req,res) => {
+  // remove cookie 
+  await res.clearCookie('jwtToken');
+
+  res.status(200).json(new ApiResponse(200, "", "Success"));
+}
+
+export{
+  registerUser,
+  loginAndGenerateToken,
+  logOutAndRemoveToken
+}

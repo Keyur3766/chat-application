@@ -1,8 +1,6 @@
 
 "use client";
 import { NextRequest, NextResponse } from "next/server";
-import { getCookie } from "cookies-next";
-import { GetServerSideProps } from "next";
 
 const openRoutes = ["/login"];
 export default function middleware(req: NextRequest) {
@@ -13,10 +11,10 @@ export default function middleware(req: NextRequest) {
         !openRoutes.includes(req?.nextUrl?.pathname)
     ) {
         absoluteUrl = new URL("/login", req.nextUrl.origin);
-        return NextResponse.redirect(absoluteUrl.toString());
+        // console.warn(absoluteUrl);
+        return NextResponse.redirect("/login");
     }
-    else{
-        return NextResponse.next();
-    }
+    
+    return NextResponse.next();
     
 }
