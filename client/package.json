@@ -16,7 +16,8 @@
     "cookies-next": "^4.2.1",
     "next": "14.2.14",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "socket.io-client": "^4.8.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.7",

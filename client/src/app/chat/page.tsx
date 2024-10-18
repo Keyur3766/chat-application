@@ -3,15 +3,30 @@ import Input from "@/components/input";
 import ChatItem from "@/components/Chat/ChatItem";
 import { classNames, requestHandler } from "@/utils";
 import { PaperAirplaneIcon, PaperClipIcon } from "@heroicons/react/16/solid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddChatModal from "@/components/Chat/AddChatModel";
 import { useAuth } from "@/context/AuthContext";
+import { useSocket } from "@/context/SocketContext";
 
 export default function Chat() {
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [openAddChat, setOpenAddChat] = useState(false); 
+    const [isConnected, setConnected] = useState(false); 
 
     const { logout } = useAuth();
+    const CONNECTED_EVENT = "connected";
+    const DISCONNECT_EVENT = "disconnect";
+    const JOIN_CHAT_EVENT = "joinChat";
+    const NEW_CHAT_EVENT = "newChat";
+    const TYPING_EVENT = "typing";
+    const STOP_TYPING_EVENT = "stopTyping";
+    const MESSAGE_RECEIVED_EVENT = "messageReceived";
+    const LEAVE_CHAT_EVENT = "leaveChat";
+    const UPDATE_GROUP_NAME_EVENT = "updateGroupName";
+    const MESSAGE_DELETE_EVENT = "messageDeleted";
+
+    const { socket } = useSocket();
+
 
     const getChats = async () => {
       // requestHandler(
@@ -24,6 +39,26 @@ export default function Chat() {
       //   alert
       // );
     };
+
+    useEffect(() => {
+      if(!socket) return;
+      socket.on(CONNECTED_EVENT, OnConnect);
+
+      socket.on(DISCONNECT_EVENT, OnDisconnect);
+
+
+      return () => {
+        socket.off(CONNECTED_EVENT, OnConnect);
+        socket.off(DISCONNECT_EVENT, OnDisconnect);
+      }
+    }, [socket]);
+
+    const OnConnect = () => {
+      setConnected(true);
+    }
+    const OnDisconnect = () => {
+      setConnected(false);
+    }
   return (
     <div>
     <AddChatModal

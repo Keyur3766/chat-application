@@ -35,7 +35,7 @@ const loginAndGenerateToken = async(req,res) => {
             password: password 
           }
         );
-          
+
           if (user) {
               const token = jwt.sign({ sub: user._id, username: user.username }, "secretkey", {
               expiresIn: "1h",
@@ -48,7 +48,7 @@ const loginAndGenerateToken = async(req,res) => {
             httpOnly: true
           });
           // console.log("calling and working");
-          res.status(200).json({ _id: user.userId, token: token, username: user.username });
+          res.status(200).json({ _id: user._id, token: token, username: user.username });
         } else {
           res
             .status(400)

@@ -41,8 +41,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("user_id", res.data._id);
 
-
-          setCookie("token", res.data.token);
+            setCookie("token", res.data.token);
 
             // cookieStore.setItem("user", res.data.username);
             // cookieStore.setItem("token", res.data.token);

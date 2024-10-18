@@ -11,10 +11,14 @@ export default function middleware(req: NextRequest) {
         !openRoutes.includes(req?.nextUrl?.pathname)
     ) {
         absoluteUrl = new URL("/login", req.nextUrl.origin);
-        // console.warn(absoluteUrl);
-        return NextResponse.redirect("/login");
+        // let url = req.nextUrl.clone();
+        // url.pathname = '/login'
+        
+        return NextResponse.redirect(absoluteUrl.toString());
     }
     
     return NextResponse.next();
     
 }
+
+export const config = { matcher: '/((?!.*\\.).*)' }

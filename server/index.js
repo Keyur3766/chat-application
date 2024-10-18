@@ -6,6 +6,9 @@ import cookieParser from "cookie-parser";
 import bodyParser from 'body-parser'
 import loginRoutes from "./api/routes/login.routes.js"
 import chatRoutes from "./api/routes/chat.routes.js"
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { initializeSocketIO } from "./api/socket/index.js";
 const app = express()
 
 dotenv.config({
@@ -15,7 +18,16 @@ dotenv.config({
 const startServer = () => {
     // set port, listen for requests
     const PORT = process.env.PORT || 8080;
-    app.listen(PORT, () => {
+
+    const httpServer = createServer(app);
+    const io = new Server(httpServer, { pingTimeout: 60000,
+        cors: {
+          origin: process.env.CORS_ORIGIN,
+          credentials: true,
+    },});
+
+
+    httpServer.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}.`);
     });
 
@@ -29,6 +41,10 @@ const startServer = () => {
     
     app.use("/api/login/", loginRoutes);
     app.use("/api/chat/", chatRoutes);
+
+    app.set("io", io);
+
+    initializeSocketIO(io);
 }
 
 
