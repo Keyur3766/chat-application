@@ -12,7 +12,7 @@ import Select from "../select";
 import Input from "../input";
 import { UserInterface } from "@/interface/userInterface";
 import { ChatListItemInterface } from "@/interface/chatInterface";
-import Userservices from "@/services/index.js";
+import Userservices from "@/services/index";
 
 const AddChatModal: React.FC<{
   open: boolean;

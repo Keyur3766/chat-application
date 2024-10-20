@@ -5,44 +5,46 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.models.js";
 import { ChatEventEnum, AvailableChatEvents } from "../enum/ChatEnum.js";
 
-
 const initializeSocketIO = (io) => {
-    
-    io.on("connection", async (socket) => {
-        const authToken = socket.handshake.auth?.token;
+  io.on("connection", async (socket) => {
+    try {
+      const authToken = socket.handshake.auth?.token;
 
-        if(!authToken){
-            throw new ApiError(401, "Unauthorized handshake. Token missing");
+      if (!authToken) {
+        throw new ApiError(401, "Unauthorized handshake. Token missing");
+      }
+
+      const decodedToken = jwt.verify(authToken, "secretkey");
+
+      const user = await User.findById(decodedToken?.sub).select("-password");
+
+      if (!user) {
+        throw new ApiError(401, "Unauthorized handshake. Token missing");
+      }
+
+      socket.user = user;
+
+      /* Create the room for a user */
+      socket.join(user._id.toString());
+
+      socket.emit(ChatEventEnum.CONNECTED_EVENT);
+
+      console.log("User connected, userId: ", user._id.toString());
+
+      socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
+        console.log("user has disconnected. userId: " + socket.user?._id);
+        if (socket.user?._id) {
+          socket.leave(socket.user._id);
         }
+      });
+    } catch (error) {
+        socket.emit(
+        ChatEventEnum.SOCKET_ERROR_EVENT,
+        error?.message || "Something went wrong while connecting to the socket."
+    );
+    }
+  });
+};
 
-        const decodedToken = jwt.verify(authToken, "secretkey");
-
-        const user = await User.findById(decodedToken?.sub).select(
-            "-password"
-        );
-
-        if(!user){
-            throw new ApiError(401, "Unauthorized handshake. Token missing");
-        }
-
-        socket.user = user;
-
-        /* Create the room for a user */
-        socket.join(user._id.toString());
-
-        socket.emit(ChatEventEnum.CONNECTED_EVENT);
-
-        console.log("User connected, userId: ", user._id.toString());
-
-        socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
-            console.log("user has disconnected. userId: " + socket.user?._id);
-            if (socket.user?._id) {
-              socket.leave(socket.user._id);
-            }
-        });
-    });
-}
 
 export { initializeSocketIO };
-
-  

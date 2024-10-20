@@ -2,7 +2,7 @@
 "use client";
 import { NextRequest, NextResponse } from "next/server";
 
-const openRoutes = ["/login"];
+const openRoutes = ["/login", "/register"];
 export default function middleware(req: NextRequest) {
     const userToken = req.cookies.get("token");
     let absoluteUrl = null;

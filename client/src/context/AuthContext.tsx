@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import Userservices from "../services/index.js";
+import Userservices from "../services/index";
 import { useRouter } from "next/navigation";
 import { deleteCookie, setCookie } from "cookies-next";
 import { requestHandler } from "@/utils";
@@ -12,12 +12,18 @@ const AuthContext = createContext<{
     user: any;
     token: string | null;
     login: any;
+    register: (data: {
+      email: string;
+      username: string;
+      password: string;
+    }) => Promise<void>;
     logout: any;
 }>({
     userId: null,
     user: null,
     token: null,
     login: async() => {},
+    register: async() => {},
     logout: async() => {}
 });
 
@@ -79,6 +85,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         alert // Display error alerts on request failure
       );
     };
+
+    const register = async(data: {email: string; username: string; password: string;}) => {
+      
+      await requestHandler(
+        async() => await Userservices.registerUser(data.email, data.username, data.password),
+        null,
+        () => {
+          alert("Account created successfully! Go ahead and login.");
+          router.push("/login"); // Redirect to the login page after successful registration
+        },
+        alert
+      );
+    }
   
     // Check for saved user and token in local storage during component initialization
     useEffect(() => {
@@ -94,7 +113,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   
     // Provide authentication-related data and functions through the context
     return (
-      <AuthContext.Provider value={{ userId, user, token, login, logout }}>
+      <AuthContext.Provider value={{ userId, user, register, token, login, logout }}>
         { children } {/* Display a loader while loading */}
       </AuthContext.Provider>
     );

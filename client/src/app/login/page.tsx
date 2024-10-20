@@ -3,7 +3,7 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import { useState } from "react";
 import { redirect, useRouter } from "next/navigation";
-import Userservices  from "../../services/index.js";
+import Userservices  from "../../services/index";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
