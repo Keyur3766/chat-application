@@ -14,7 +14,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
   try {
     const decodedToken = jwt.verify(token, "secretkey");
-    const user = await User.findById(decodedToken?._id).select("-password");
+    const user = await User.findById(decodedToken?.sub).select("-password");
     if (!user) {
       // Client should make a request to /api/v1/users/refresh-token if they have refreshToken present in their cookie
       // Then they will get a new access token which will allow them to refresh the access token without logging out the user

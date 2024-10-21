@@ -72,5 +72,20 @@ export default {
 
     // await apiClient.get()
     return response;
+  },
+
+  getChats: async function() {
+    const response = await apiClient.get("/api/chat");
+
+    // await apiClient.get()
+    return response;
+  },
+
+  getMessages: async function(chatId: string) {
+    return await apiClient.get(`/api/message/${chatId}`)
+  },
+
+  createUserChat: async function(receiverId: string) {
+    return await apiClient.get(`/api/chat/addChat/${receiverId}`) 
   }
 }

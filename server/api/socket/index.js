@@ -5,6 +5,21 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.models.js";
 import { ChatEventEnum, AvailableChatEvents } from "../enum/ChatEnum.js";
 
+
+/**
+ * @description This function is responsible to allow user to join the chat represented by chatId (chatId). event happens when user switches between the chats
+ * @param {Socket<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} socket
+ */
+const mountJoinChatEvent = (socket) => {
+  socket.on(ChatEventEnum.JOIN_CHAT_EVENT, (chatId) => {
+    console.log(`User joined the chat 🤝. chatId: `, chatId);
+    // joining the room with the chatId will allow specific events to be fired where we don't bother about the users like typing events
+    // E.g. When user types we don't want to emit that event to specific participant.
+    // We want to just emit that to the chat where the typing is happening
+    socket.join(chatId);
+  });
+};
+
 const initializeSocketIO = (io) => {
   io.on("connection", async (socket) => {
     try {
@@ -30,7 +45,8 @@ const initializeSocketIO = (io) => {
       socket.emit(ChatEventEnum.CONNECTED_EVENT);
 
       console.log("User connected, userId: ", user._id.toString());
-
+      mountJoinChatEvent(socket);
+      
       socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
         console.log("user has disconnected. userId: " + socket.user?._id);
         if (socket.user?._id) {
@@ -46,5 +62,9 @@ const initializeSocketIO = (io) => {
   });
 };
 
+const emitSocketIOEvent = (req, roomId, event, payload) => {
+  req.app.get("io").to(roomId).emit(event, payload);
+}
 
-export { initializeSocketIO };
+
+export { initializeSocketIO, emitSocketIOEvent };

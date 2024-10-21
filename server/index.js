@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import bodyParser from 'body-parser'
 import loginRoutes from "./api/routes/login.routes.js"
 import chatRoutes from "./api/routes/chat.routes.js"
+import messageRoutes from "./api/routes/message.routes.js"
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { initializeSocketIO } from "./api/socket/index.js";
@@ -41,6 +42,7 @@ const startServer = () => {
     
     app.use("/api/login/", loginRoutes);
     app.use("/api/chat/", chatRoutes);
+    app.use("/api/message/", messageRoutes);
 
     app.set("io", io);
 

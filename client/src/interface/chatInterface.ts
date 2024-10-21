@@ -4,9 +4,9 @@ import { UserInterface } from "./userInterface";
 export interface ChatListItemInterface {
   admin: string;
   createdAt: string;
-  isGroupChat: true;
+  // isGroupChat: true;
   lastMessage?: ChatMessageInterface;
-  name: string;
+  // name: string;
   participants: UserInterface[];
   updatedAt: string;
   _id: string;

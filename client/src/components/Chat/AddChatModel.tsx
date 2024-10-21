@@ -54,23 +54,24 @@ const AddChatModal: React.FC<{
     if (!selectedUserId) return alert("Please select a user");
 
     // Handle the request to create a chat
-    // await requestHandler(
-    //   // Callback to create a user chat
-    //   async () => await createUserChat(selectedUserId),
-    //   setCreatingChat, // Callback to handle loading state
-    //   // Success callback
-    //   (res) => {
-    //     const { data } = res; // Extract data from response
-    //     // If chat already exists with the selected user
-    //     if (res.statusCode === 200) {
-    //       alert("Chat with selected user already exists");
-    //       return;
-    //     }
-    //     onSuccess(data); // Execute the onSuccess function with received data
-    //     handleClose(); // Close the modal or popup
-    //   },
-    //   alert // Use the alert as the error handler
-    // );
+    await requestHandler(
+      // Callback to create a user chat
+      async () => await Userservices.createUserChat(selectedUserId),
+      null, // Callback to handle loading state
+      // Success callback
+      (res) => {
+        const { data } = res; // Extract data from response
+        
+        if (res.statusCode === 200) {
+          alert("Chat with selected user already exists");
+          return;
+        }
+        onSuccess(data); // Execute the onSuccess function with received data
+        handleClose(); // Close the modal or popup
+        console.log(res.data);
+      },
+      alert // Use the alert as the error handler
+    );
   };
 
   // Function to create a new group chat
@@ -246,7 +247,7 @@ const AddChatModal: React.FC<{
                   </Button>
                   <Button
                     disabled={creatingChat}
-                    onClick={isGroupChat ? createNewGroupChat : createNewChat}
+                    onClick={createNewChat}
                     className="w-1/2"
                   >
                     Create

@@ -41,7 +41,7 @@ const loginAndGenerateToken = async(req,res) => {
               expiresIn: "1h",
           });
           
-          user.refreshToken = token;
+          user.token = token;
           await user.save();
           res.cookie("jwtToken", token, {
             expires: new Date(Date.now()+1000000),
