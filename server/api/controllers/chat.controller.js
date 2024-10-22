@@ -38,10 +38,48 @@ const chatCommonAggregation = () => {
       },
     },
     {
+      // lookup for the group chats
+      $lookup: {
+        from: "chatmessages",
+        foreignField: "_id",
+        localField: "lastMessage",
+        as: "lastMessage",
+        pipeline: [
+          {
+            // get details of the sender
+            $lookup: {
+              from: "users",
+              foreignField: "_id",
+              localField: "sender",
+              as: "sender",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    email: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              sender: { $first: "$sender" },
+            },
+          },
+        ],
+      }
+    },
+    {
       $addFields: {
         lastMessage: { $first: "$lastMessage" },
       },
     },
+    // {
+    //   $addFields: {
+    //     lastMessage: { $first: "$lastMessage" },
+    //   },
+    // },
   ];
 };
 

@@ -85,6 +85,22 @@ export default {
     return await apiClient.get(`/api/message/${chatId}`)
   },
 
+  sendMessages: async function(chatId: string, content: string) {
+    // const formData = new FormData();
+    // if (content) {
+    //   formData.append("content", content);
+    // }
+    // formData.forEach((value, key) => {
+    //   console.log(key, value);
+    // });
+    const body = { content };
+    return await apiClient.post(`/api/message/${chatId}`, JSON.stringify(body), {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  },
+
   createUserChat: async function(receiverId: string) {
     return await apiClient.get(`/api/chat/addChat/${receiverId}`) 
   }

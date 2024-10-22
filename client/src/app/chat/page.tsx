@@ -7,8 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import AddChatModal from "@/components/Chat/AddChatModel";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
-import { ChatListItemInterface } from "@/interface/chatInterface";
+import { ChatListItemInterface, ChatMessageInterface } from "@/interface/chatInterface";
 import Userservices from '@/services/index';
+import MessageItem from "@/components/Chat/MessageItem";
 
 export default function Chat() {
     const [loadingMessages, setLoadingMessages] = useState(false);
@@ -17,6 +18,7 @@ export default function Chat() {
     const currentChat = useRef<ChatListItemInterface | null>(null);
     const [message, setMessage] = useState("");
     const [chats, setChats] = useState<ChatListItemInterface[]>([]);
+    const [messages, setMessages] = useState<ChatMessageInterface[]>([]); 
 
     const { logout, user, userId } = useAuth();
     const CONNECTED_EVENT = "connected";
@@ -62,14 +64,42 @@ export default function Chat() {
         null,
         (res) => {
           const {data} = res;
+          setMessages(data || []);
           console.log("success:", data);
         },
         alert
       );
     }
 
+    const updateLastChatMessage = async(chatToUpdateId: string, message: ChatMessageInterface) => {
+      const chatToUpdate = chats.find((chat)=> chat._id===chatToUpdateId)!;
+
+      chatToUpdate.lastMessage = message;
+
+      chatToUpdate.updatedAt = message?.updatedAt;
+
+      setChats([
+        chatToUpdate,
+        ...chats.filter((chat) => chat._id !== chatToUpdateId)
+      ]);
+
+    }
+
     const sendChatMessage = () => {
-      
+      if (!currentChat.current?._id || !socket) return;
+
+        // Emit event for sending the data(i.e. typing event).
+
+        // store the data to MongoDB
+        requestHandler(
+          async () => await Userservices.sendMessages(currentChat.current?._id || "", message),
+          null,
+          (res) => {
+            setMessage("");
+            setMessages((prev)=>[res.data, ...prev]);
+          },
+          alert
+        );
     }
 
     const handleOnMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,12 +111,14 @@ export default function Chat() {
       socket.on(CONNECTED_EVENT, OnConnect);
       socket.on(DISCONNECT_EVENT, OnDisconnect);
       socket.on(NEW_CHAT_EVENT, OnNewChat);
+      socket.on(MESSAGE_RECEIVED_EVENT, OnMessageReceived);
 
 
       return () => {
         socket.off(CONNECTED_EVENT, OnConnect);
         socket.off(DISCONNECT_EVENT, OnDisconnect);
         socket.off(NEW_CHAT_EVENT, OnNewChat);
+        socket.off(MESSAGE_RECEIVED_EVENT, OnMessageReceived);
       }
     }, [socket, chats]);
 
@@ -114,6 +146,12 @@ export default function Chat() {
     }
     const OnNewChat = (chatItem: ChatListItemInterface) => {
       setChats((prev) => [chatItem, ...prev]);
+    }
+
+    const OnMessageReceived = (message: ChatMessageInterface) => {
+      if(message.chat === currentChat.current?._id){
+        setMessages((prev) => [message, ...prev]);
+      }
     }
   return (
     <div>
@@ -193,66 +231,37 @@ export default function Chat() {
                   </div>
                 </div>
               </div>
-              {/* <div
+              <div
                 className={classNames(
                   "p-8 overflow-y-auto flex flex-col-reverse gap-6 w-full",
-                  attachedFiles.length > 0
-                    ? "h-[calc(100vh-336px)]"
-                    : "h-[calc(100vh-176px)]"
+                  // attachedFiles.length > 0
+                    // ? "h-[calc(100vh-336px)]"
+                    "h-[calc(100vh-176px)]"
                 )}
                 id="message-window"
               >
-                {loadingMessages ? (
+                {/* {loadingMessages ? (
                   <div className="flex justify-center items-center h-[calc(100%-88px)]">
                     <Typing />
                   </div>
-                ) : (
-                  <>
-                    {isTyping ? <Typing /> : null}
+                ) : ( */}
+
+                    {/* {isTyping ? <Typing /> : null} */}
                     {messages?.map((msg) => {
+                      
                       return (
                         <MessageItem
                           key={msg._id}
-                          isOwnMessage={msg.sender?._id === user?._id}
-                          isGroupChatMessage={currentChat.current?.isGroupChat}
+                          isOwnMessage={msg.sender?._id === userId}
+                          isGroupChatMessage={false}
                           message={msg}
-                          deleteChatMessage={deleteChatMessage}
+                          deleteChatMessage={() => "Implement deleting the chat"}
                         />
                       );
                     })}
-                  </>
-                )}
+
+                
               </div>
-              {attachedFiles.length > 0 ? (
-                <div className="grid gap-4 grid-cols-5 p-4 justify-start max-w-fit">
-                  {attachedFiles.map((file, i) => {
-                    return (
-                      <div
-                        key={i}
-                        className="group w-32 h-32 relative aspect-square rounded-xl cursor-pointer"
-                      >
-                        <div className="absolute inset-0 flex justify-center items-center w-full h-full bg-black/40 group-hover:opacity-100 opacity-0 transition-opacity ease-in-out duration-150">
-                          <button
-                            onClick={() => {
-                              setAttachedFiles(
-                                attachedFiles.filter((_, ind) => ind !== i)
-                              );
-                            }}
-                            className="absolute -top-2 -right-2"
-                          >
-                            <XCircleIcon className="h-6 w-6 text-white" />
-                          </button>
-                        </div>
-                        <img
-                          className="h-full rounded-xl w-full object-cover"
-                          src={URL.createObjectURL(file)}
-                          alt="attachment"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null} */}
               <div className="sticky top-full p-4 flex justify-between items-center w-full gap-2 border-t-[0.1px] border-secondary">
                 {/* <input
                   hidden
