@@ -19,6 +19,7 @@ export default function Chat() {
     const [message, setMessage] = useState("");
     const [chats, setChats] = useState<ChatListItemInterface[]>([]);
     const [messages, setMessages] = useState<ChatMessageInterface[]>([]); 
+    const [unreadMessages, setUnreadMessages] = useState<ChatMessageInterface[]>([]); 
 
     const { logout, user, userId } = useAuth();
     const CONNECTED_EVENT = "connected";
@@ -31,9 +32,22 @@ export default function Chat() {
     const LEAVE_CHAT_EVENT = "leaveChat";
     const UPDATE_GROUP_NAME_EVENT = "updateGroupName";
     const MESSAGE_DELETE_EVENT = "messageDeleted";
+    const UPDATE_UNREAD_MESSAGE = "UpdateUnreadMessage";
 
     const { socket } = useSocket();
 
+    const getunreadMessages = async() => {
+      requestHandler(
+        async () => await Userservices.getUnreadMessages(),
+        null,
+        (res) => {
+          const { data } = res;
+
+          setUnreadMessages(data);
+        },
+        alert
+      );
+    }
 
     const getChats = async () => {
       requestHandler(
@@ -43,6 +57,8 @@ export default function Chat() {
           const { data } = res;
 
           setChats(data);
+
+          getunreadMessages();
         },
         alert
       );
@@ -65,7 +81,6 @@ export default function Chat() {
         (res) => {
           const {data} = res;
           setMessages(data || []);
-          console.log("success:", data);
         },
         alert
       );
@@ -97,6 +112,7 @@ export default function Chat() {
           (res) => {
             setMessage("");
             setMessages((prev)=>[res.data, ...prev]);
+            updateLastChatMessage(currentChat.current?._id || "", res.data);
           },
           alert
         );
@@ -112,6 +128,7 @@ export default function Chat() {
       socket.on(DISCONNECT_EVENT, OnDisconnect);
       socket.on(NEW_CHAT_EVENT, OnNewChat);
       socket.on(MESSAGE_RECEIVED_EVENT, OnMessageReceived);
+      socket.on(UPDATE_UNREAD_MESSAGE, OnUpdateUnreadMessage);
 
 
       return () => {
@@ -119,6 +136,7 @@ export default function Chat() {
         socket.off(DISCONNECT_EVENT, OnDisconnect);
         socket.off(NEW_CHAT_EVENT, OnNewChat);
         socket.off(MESSAGE_RECEIVED_EVENT, OnMessageReceived);
+        socket.off(UPDATE_UNREAD_MESSAGE, OnUpdateUnreadMessage);
       }
     }, [socket, chats]);
 
@@ -135,8 +153,10 @@ export default function Chat() {
 
         getMessages();
       }
-
+      
     }, [])
+
+
 
     const OnConnect = () => {
       setConnected(true);
@@ -152,6 +172,14 @@ export default function Chat() {
       if(message.chat === currentChat.current?._id){
         setMessages((prev) => [message, ...prev]);
       }
+      else{
+        setUnreadMessages((prev) => [message, ...prev]);
+      }
+      updateLastChatMessage(message.chat || "", message);
+    }
+
+    const OnUpdateUnreadMessage = (chatId: string) => {
+      setUnreadMessages([...unreadMessages.filter((x) => x.chat != chatId)]);
     }
   return (
     <div>
@@ -194,7 +222,9 @@ export default function Chat() {
             return <ChatItem 
               key={index} 
               isActive={true} 
-              unreadCount={0}
+              unreadCount={
+                unreadMessages.filter((x) => x.chat === chat._id).length
+              }
               chat={chat}
               onClick = {(chat) => {
                 if(currentChat.current?._id && currentChat.current?._id === chat._id){

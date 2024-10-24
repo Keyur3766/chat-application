@@ -94,12 +94,11 @@ const ChatItem: React.FC<{
           </small>
 
           {/* Unread count will be > 0 when user is on another chat and there is new message in a chat which is not currently active on user's screen */}
-          {/* {unreadCount <= 0 ? null : ( */}
+          {unreadCount <= 0 ? null : ( 
             <span className="bg-success h-2 w-2 aspect-square flex-shrink-0 p-2 text-black text-xs rounded-full inline-flex justify-center items-center">
-              {/* {unreadCount > 9 ? "9+" : unreadCount} */}
-              2
+              {unreadCount > 9 ? "9+" : unreadCount}
             </span>
-          {/* )} */}
+          )} 
         </div>
       </div>
     );

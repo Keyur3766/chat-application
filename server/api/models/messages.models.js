@@ -11,6 +11,10 @@ const ChatMessageSchema = new mongoose.Schema({
     chat: {
         type: Schema.Types.ObjectId,
         ref: 'chat'
+    },
+    isReaded: {
+        type: Boolean,
+        default: false
     }
 }, {timestamps: true});
 

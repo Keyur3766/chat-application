@@ -103,5 +103,9 @@ export default {
 
   createUserChat: async function(receiverId: string) {
     return await apiClient.get(`/api/chat/addChat/${receiverId}`) 
+  },
+
+  getUnreadMessages: async function() {
+    return await apiClient.get('/api/message/getUnreadMessages');
   }
 }

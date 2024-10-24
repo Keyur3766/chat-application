@@ -45,12 +45,31 @@ const getMessages = asyncHandler(async (req, res) => {
     ...chatMessageCommonAggregation(),
     {
       $sort: {
-        createdAt: -1,
+        createdAt: -1, 
       },
     },
   ]);
 
-  res
+  const updatedUnreadMessages = await ChatMessage.updateMany(
+    {
+      $and: [
+        {chat: new mongoose.Types.ObjectId(chatId)},
+        {isReaded: false}
+      ],
+    }, 
+    {
+      $set: {
+        isReaded: true
+      }
+    }, {new: true});
+    console.log(updatedUnreadMessages);
+    if(updatedUnreadMessages){
+      emitSocketIOEvent(req, req.user._id.toString(), ChatEventEnum.UPDATE_UNREAD_MESSAGE, chatId);
+      console.log("event emitted for unread messages");
+    }
+
+
+    res
     .status(200)
     .json(
       new ApiResponse(200, messages || [], "messages retrieved successfully")
@@ -84,7 +103,7 @@ const sendMessages = asyncHandler(async (req, res) => {
       lastMessage: message._id
     }
   }, { new: true });
-
+ 
   // convert the format to commonMessage format
   const messages = await ChatMessage.aggregate([
     {
@@ -103,7 +122,7 @@ const sendMessages = asyncHandler(async (req, res) => {
   // Emit received event which parse the message format which we got above
   updatedChat.participants.forEach((participantId) => {
     if(participantId.toString()===req.user._id.toString()) return;
-
+    
     emitSocketIOEvent
     (
       req,
@@ -119,4 +138,43 @@ const sendMessages = asyncHandler(async (req, res) => {
 
 });
 
-export { getMessages, sendMessages };
+const getAllUnreadMessages = asyncHandler(async (req, res) => {
+
+  const chatmessages = await ChatMessage.aggregate([
+    {
+      $match: {
+        isReaded: false
+      }
+    },
+    {
+      $lookup: {
+        from: "chats",
+        foreignField: "_id",
+        localField: "chat",
+        as: "chatContent",
+        pipeline: [
+          {
+            $match: {
+              participants: { $elemMatch: { $eq: req.user._id } }, // get all chats that have logged in user as a participant
+            },
+          }
+        ]
+      }
+    },
+    {
+      $project: {
+        chatContent: 0
+      }
+    },
+    ...chatMessageCommonAggregation()
+  ])
+
+  console.log(chatmessages);
+
+  res.status(200).json(new ApiResponse(200, chatmessages, "Unread messages fetched..."));
+  // res.status(200).json(new ApiResponse(200, [], "Unread messages fetched..."));
+});
+
+
+
+export { getMessages, sendMessages, getAllUnreadMessages };
