@@ -38,34 +38,50 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const [userId, setUserId] = useState<string | null>(null);
   
     const router = useRouter();
-    let redirectPath: string | "";
+
     // Function to handle user login
     const login = async (data: { username: string; password: string }) => {
-      Userservices.GenerateLoginToken(data.username, data.password).then((res: any)=>{
-        if(res.status===200){
-            localStorage.setItem("user", res.data.username);
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("user_id", res.data._id);
-
-            setCookie("token", res.data.token);
-
-            // cookieStore.setItem("user", res.data.username);
-            // cookieStore.setItem("token", res.data.token);
-            // cookieStore.setItem("user_id", res.data._id);
-            // redirectPath = "/chat";
-            router.push("/chat");
-        }
-        if(res.response && res.response.status===400){
-          console.warn("UserName or password is incorrect");
-          // setServerError('Invalid credentials');
+      await requestHandler(
+        async () => await Userservices.GenerateLoginToken(data.username, data.password),
+        null,
+        (res) => {
+          localStorage.setItem("user", res.data.username);
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("user_id", res.data._id);
+          localStorage.setItem("user", JSON.stringify(res.data));
+          setCookie("token", res.data.token);
+          router.push("/chat");
+        },
+        () => {
+          alert("UserName or password is incorrect");
           router.push("/login");
-        }
-      })
-      .catch((error)=>{
-        console.log(error);
-        router.push("/login");
-        // redirectPath = "/login";
-      });
+        } // Display error alerts on request failure
+      );
+      // Userservices.GenerateLoginToken(data.username, data.password).then((res: any)=>{
+      //   if(res.status===200){
+      //       localStorage.setItem("user", res.data.username);
+      //       localStorage.setItem("token", res.data.token);
+      //       localStorage.setItem("user_id", res.data._id);
+
+      //       setCookie("token", res.data.token);
+
+      //       // cookieStore.setItem("user", res.data.username);
+      //       // cookieStore.setItem("token", res.data.token);
+      //       // cookieStore.setItem("user_id", res.data._id);
+      //       // redirectPath = "/chat";
+      //       router.push("/chat");
+      //   }
+      //   if(res.response && res.response.status===400){
+      //     console.warn("UserName or password is incorrect");
+      //     // setServerError('Invalid credentials');
+      //     router.push("/login");
+      //   }
+      // })
+      // .catch((error)=>{
+      //   console.log(error);
+      //   router.push("/login");
+      //   // redirectPath = "/login";
+      // });
     };
 
   

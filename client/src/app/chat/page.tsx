@@ -118,6 +118,19 @@ export default function Chat() {
         );
     }
 
+    const markMessagetoRead = (messageId: string) => {
+      requestHandler(
+        async () => await Userservices.markMessageRead(messageId || ""),
+        null,
+        (res) => {
+          if(res.data){
+            console.log("message marked as read");
+          }
+        },
+        alert
+      );
+    }
+
     const handleOnMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setMessage(e.target.value);
     }
@@ -171,6 +184,8 @@ export default function Chat() {
     const OnMessageReceived = (message: ChatMessageInterface) => {
       if(message.chat === currentChat.current?._id){
         setMessages((prev) => [message, ...prev]);
+        
+        markMessagetoRead(message._id);
       }
       else{
         setUnreadMessages((prev) => [message, ...prev]);
@@ -179,7 +194,7 @@ export default function Chat() {
     }
 
     const OnUpdateUnreadMessage = (chatId: string) => {
-      setUnreadMessages([...unreadMessages.filter((x) => x.chat != chatId)]);
+      setUnreadMessages([...unreadMessages.filter((x) => x.chat !== chatId)]);
     }
   return (
     <div>

@@ -50,8 +50,9 @@ export const requestHandler = async (
     // Case: Individual chat
     // Identify the participant other than the logged-in user.
     const participant = chat.participants.find(
-      (p) => p._id !== loggedInUserId
+      (p) => p._id.toString() !== loggedInUserId.toString()
     );
+
     // Return metadata specific to individual chats.
     return {
       avatar: "https://avatar.iran.liara.run/public/boy", // Participant's avatar URL.

@@ -21,28 +21,40 @@ apiClient.interceptors.request.use(
 );
 
 export default {
-  GenerateLoginToken: async function (username:string, password:string) {
-    try {
-      console.warn(api_base_url)
-      const response = await axios.post(
-        `${api_base_url}/api/login/generateToken`, {
-        username: username,
-        password: password
-      }
-      );
+  GenerateLoginToken: async function (username:string, password:string): Promise<any> {
+    // try {
+    //   console.warn(api_base_url)
+    //   const response = await axios.post(
+    //     `${api_base_url}/api/login/generateToken`, {
+    //     username: username,
+    //     password: password
+    //   }
+    //   );
 
       
-      if (response.status === 200) {
-        // cookies.set('jwtToken', JSON.stringify(response.data), { expires: 1/24 });
-        localStorage.setItem("user", JSON.stringify(response.data));
-      }
-      console.warn(response)
-      return response;
+    //   if (response.status === 200) {
+    //     // cookies.set('jwtToken', JSON.stringify(response.data), { expires: 1/24 });
+    //     localStorage.setItem("user", JSON.stringify(response.data));
+    //   }
+    //   console.warn(response)
+    //   return response;
+    // }
+    // catch (error) {
+    //   console.log(error);
+    //   return error;
+    // }
+    try{
+      return await apiClient.post("/api/login/generateToken", 
+        {
+          username: username,
+          password: password
+        });
     }
     catch (error) {
       console.log(error);
       return error;
     }
+    
   },
 
   logoutUser: async function () {
@@ -107,5 +119,9 @@ export default {
 
   getUnreadMessages: async function() {
     return await apiClient.get('/api/message/getUnreadMessages');
+  },
+
+  markMessageRead: async function(messageId: string) {
+    return await apiClient.get(`/api/message/markMessageRead/${messageId}`);
   }
 }
