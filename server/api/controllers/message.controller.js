@@ -62,12 +62,10 @@ const getMessages = asyncHandler(async (req, res) => {
         isReaded: true
       }
     }, {new: true});
-    console.log(updatedUnreadMessages);
+
     if(updatedUnreadMessages){
       emitSocketIOEvent(req, req.user._id.toString(), ChatEventEnum.UPDATE_UNREAD_MESSAGE, chatId);
-      console.log("event emitted for unread messages");
     }
-
 
     res
     .status(200)
@@ -169,12 +167,21 @@ const getAllUnreadMessages = asyncHandler(async (req, res) => {
     ...chatMessageCommonAggregation()
   ])
 
-  console.log(chatmessages);
-
   res.status(200).json(new ApiResponse(200, chatmessages, "Unread messages fetched..."));
-  // res.status(200).json(new ApiResponse(200, [], "Unread messages fetched..."));
 });
 
+const markMessageRead = asyncHandler(async (req, res) => {
+  const {messageId} = req.params;
+
+  const updatedChat = await ChatMessage.findByIdAndUpdate(new mongoose.Types.ObjectId(messageId), {
+    $set: {
+      isReaded: true
+    }
+  }, { new: true });
+
+  res.status(201).json(new ApiResponse(201, updatedChat, "message marked readed"));
+})
 
 
-export { getMessages, sendMessages, getAllUnreadMessages };
+
+export { getMessages, sendMessages, getAllUnreadMessages, markMessageRead };

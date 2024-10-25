@@ -48,11 +48,11 @@ const loginAndGenerateToken = async(req,res) => {
             httpOnly: true
           });
           // console.log("calling and working");
-          res.status(200).json({ _id: user._id, token: token, username: user.username });
+          res.status(200).json(new ApiResponse(200, { _id: user._id, token: token, username: user.username }, "Token generated.."));
         } else {
           res
             .status(400)
-            .json({ message: "Username or password is incorrect" });
+            .json(new ApiResponse(400, "Username or pasword is incorrect", "Username or password is incorrect"));
         }
     }
     catch(error){
