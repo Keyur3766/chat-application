@@ -20,6 +20,22 @@ const mountJoinChatEvent = (socket) => {
   });
 };
 
+const mountTypingChatEvent = (socket) => {
+  socket.on(ChatEventEnum.TYPING_EVENT, (chatId) => {
+    console.log("typing event emmited for following chat:")
+    console.log(chatId);
+    socket.in(chatId).emit(ChatEventEnum.TYPING_EVENT, chatId);
+  })
+}
+
+const mountStoppedTypingChatEvent = (socket) => {
+  socket.on(ChatEventEnum.STOP_TYPING_EVENT, (chatId) => {
+    console.log("stop typing event emmited for following chat:")
+    console.log(chatId);
+    socket.in(chatId).emit(ChatEventEnum.STOP_TYPING_EVENT, chatId);
+  })
+}
+
 const initializeSocketIO = (io) => {
   io.on("connection", async (socket) => {
     try {
@@ -46,6 +62,8 @@ const initializeSocketIO = (io) => {
 
       console.log("User connected, userId: ", user._id.toString());
       mountJoinChatEvent(socket);
+      mountTypingChatEvent(socket);
+      mountStoppedTypingChatEvent(socket);
       
       socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
         console.log("user has disconnected. userId: " + socket.user?._id);

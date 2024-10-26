@@ -48,7 +48,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           localStorage.setItem("user", res.data.username);
           localStorage.setItem("token", res.data.token);
           localStorage.setItem("user_id", res.data._id);
-          localStorage.setItem("user", JSON.stringify(res.data));
+          // localStorage.setItem("user", JSON.stringify(res.data));
           setCookie("token", res.data.token);
           router.push("/chat");
         },

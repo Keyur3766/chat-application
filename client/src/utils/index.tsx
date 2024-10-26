@@ -50,7 +50,7 @@ export const requestHandler = async (
     // Case: Individual chat
     // Identify the participant other than the logged-in user.
     const participant = chat.participants.find(
-      (p) => p._id.toString() !== loggedInUserId.toString()
+      (p) => p._id.toString() !== loggedInUserId
     );
 
     // Return metadata specific to individual chats.

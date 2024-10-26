@@ -10,6 +10,7 @@ import { useSocket } from "@/context/SocketContext";
 import { ChatListItemInterface, ChatMessageInterface } from "@/interface/chatInterface";
 import Userservices from '@/services/index';
 import MessageItem from "@/components/Chat/MessageItem";
+import Typing from "@/components/Typing";
 
 export default function Chat() {
     const [loadingMessages, setLoadingMessages] = useState(false);
@@ -20,6 +21,9 @@ export default function Chat() {
     const [chats, setChats] = useState<ChatListItemInterface[]>([]);
     const [messages, setMessages] = useState<ChatMessageInterface[]>([]); 
     const [unreadMessages, setUnreadMessages] = useState<ChatMessageInterface[]>([]); 
+    const [selfTyping, setSelfTyping] = useState<Boolean>(false);
+    const [isTyping, setIsTyping] = useState<Boolean>(false);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const { logout, user, userId } = useAuth();
     const CONNECTED_EVENT = "connected";
@@ -133,6 +137,27 @@ export default function Chat() {
 
     const handleOnMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setMessage(e.target.value);
+
+      if(!socket || !isConnected) return;
+
+      if(!selfTyping){
+        setSelfTyping(true);
+        
+        socket.emit(TYPING_EVENT, currentChat.current?._id);
+      }
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      const timerLength = 3000;
+      typingTimeoutRef.current = setTimeout(() => {
+        // Emit a stop typing event to the server for the current chat
+        socket.emit(STOP_TYPING_EVENT, currentChat.current?._id);
+  
+        // Reset the user's typing state
+        setSelfTyping(false);
+      }, timerLength);
     }
 
     useEffect(() => {
@@ -142,6 +167,8 @@ export default function Chat() {
       socket.on(NEW_CHAT_EVENT, OnNewChat);
       socket.on(MESSAGE_RECEIVED_EVENT, OnMessageReceived);
       socket.on(UPDATE_UNREAD_MESSAGE, OnUpdateUnreadMessage);
+      socket.on(TYPING_EVENT, OnTypingEvent);
+      socket.on(STOP_TYPING_EVENT, OnStopTypingEvent);
 
 
       return () => {
@@ -150,6 +177,8 @@ export default function Chat() {
         socket.off(NEW_CHAT_EVENT, OnNewChat);
         socket.off(MESSAGE_RECEIVED_EVENT, OnMessageReceived);
         socket.off(UPDATE_UNREAD_MESSAGE, OnUpdateUnreadMessage);
+        socket.off(TYPING_EVENT, OnTypingEvent);
+        socket.off(STOP_TYPING_EVENT, OnStopTypingEvent);
       }
     }, [socket, chats]);
 
@@ -161,13 +190,12 @@ export default function Chat() {
       
       if(_currentChat) {
         currentChat.current = JSON.parse(_currentChat);
-
-        socket?.emit(JOIN_CHAT_EVENT, currentChat.current?._id.toString());
+        socket?.emit(JOIN_CHAT_EVENT, currentChat.current?._id);
 
         getMessages();
       }
       
-    }, [])
+    }, [socket])
 
 
 
@@ -195,6 +223,22 @@ export default function Chat() {
 
     const OnUpdateUnreadMessage = (chatId: string) => {
       setUnreadMessages([...unreadMessages.filter((x) => x.chat !== chatId)]);
+    }
+
+    const OnTypingEvent = (chatId: string) => {
+      // Check if the stop typing event is for the currently active chat.
+      if (chatId !== currentChat.current?._id) return;
+      
+      // Set the typing state to false for the current chat.
+      setIsTyping(true);
+    }
+
+    const OnStopTypingEvent = (chatId: string) => {
+      // Check if the stop typing event is for the currently active chat.
+      if (chatId !== currentChat.current?._id) return;
+      
+      // Set the typing state to false for the current chat.
+      setIsTyping(false);
     }
   return (
     <div>
@@ -291,7 +335,7 @@ export default function Chat() {
                   </div>
                 ) : ( */}
 
-                    {/* {isTyping ? <Typing /> : null} */}
+                    {isTyping ? <Typing /> : null}
                     {messages?.map((msg) => {
                       
                       return (
