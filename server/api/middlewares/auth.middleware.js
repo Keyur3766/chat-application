@@ -11,9 +11,11 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   if (!token) {
     throw new ApiError(401, "Unauthorized request");
   }
-
+  
   try {
-    const decodedToken = jwt.verify(token, "secretkey");
+    
+    const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
+    
     const user = await User.findById(decodedToken?.sub).select("-password");
     if (!user) {
       // Client should make a request to /api/v1/users/refresh-token if they have refreshToken present in their cookie

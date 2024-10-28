@@ -45,7 +45,7 @@ const initializeSocketIO = (io) => {
         throw new ApiError(401, "Unauthorized handshake. Token missing");
       }
 
-      const decodedToken = jwt.verify(authToken, "secretkey");
+      const decodedToken = jwt.verify(authToken, process.env.SECRET_KEY);
 
       const user = await User.findById(decodedToken?.sub).select("-password");
 

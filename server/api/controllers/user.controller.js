@@ -37,7 +37,7 @@ const loginAndGenerateToken = async(req,res) => {
         );
 
           if (user) {
-              const token = jwt.sign({ sub: user._id, username: user.username }, "secretkey", {
+              const token = jwt.sign({ sub: user._id, username: user.username }, process.env.SECRET_KEY, {
               expiresIn: "1h",
           });
           
